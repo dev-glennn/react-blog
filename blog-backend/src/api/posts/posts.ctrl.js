@@ -1,106 +1,112 @@
-let postId = 1; // id의 초깃값
+import Post from '../../models/post';
 
-const posts = [
-    {
-        id: 1,
-        title: '제목',
-        body: '내용'
-    },
-]
-
-/* 포스트 작성
-POST /api/posts
-{title, body}
+/**
+ * POST /api.posts
+ *
+ * {
+ *     title : '제목',
+ *     body : '내용',
+ *     tags : ['태그1', '태그2']
+ * }
+ *
+ * @param ctx
+ * @returns {Promise<void>}
  */
-export const write = ctx => {
-    const {title, body} = ctx.request.body;
-    postId += 1;
-    const post = {id: postId, title, body};
-    posts.push(post);
-    ctx.body = post;
-}
-
-/* 포스트 목록 조회
-GET /api/posts
- */
-export const list = ctx => {
-    ctx.body = posts;
-}
-
-/* 특정 포스트 조회
-GET /api/posts/:id
- */
-export const read = ctx => {
-    const {id} = ctx.params;
-    // 주어진 ID로 포스트를 찾음
-    // 파라미터로 받아 온 값은 문자열 형식이니 파라미터를 숫자로 변경하거나, 비교할 p.id 값을 문자열로 변경해야 함
-    const post = posts.find(p => p.id.toString() === id);
-    // 포스트가 없으면 오류를 반환
-    if (!post) {
-        ctx.status = 404;
-        ctx.body = {
-            message: '포스트가 존재하지 않습니다.',
-        };
-        return;
+export const write = async ctx => {
+    const {title, body, tags} = ctx.request.body;
+    const post = new Post({
+        title,
+        body,
+        tags,
+    });
+    try {
+        await post.save();
+        ctx.body = post;
+    } catch (e) {
+        ctx.throw(500, e);
     }
-    ctx.body = post;
-}
+};
 
-/* 특정 포스트 제거
-DELETE /api/posts/:id
+/**
+ * GET /api/posts
+ *
+ * @param ctx
+ * @returns {Promise<void>}
  */
-export const remove = ctx => {
-    const {id} = ctx.params;
-    const index = posts.findIndex(p => p.id.toString() === id);
-    if (index === -1) {
-        ctx.status = 404;
-        ctx.body = {
-            message: '포스트가 존재하지 않습니다.',
-        };
-        return;
+export const list = async ctx => {
+    try {
+        const posts = await Post.find().exec();
+        ctx.body = posts;
+    } catch (e) {
+        ctx.throw(500, e)
     }
-    posts.splice(index, 1);
-    ctx.status = 204;
-}
+};
 
-/* 포스트 수정(교체)
-PUT /api/posts/:id
-{title, body}
+/**
+ * GET /api/posts/:id
+ *
+ * @param ctx
+ * @returns {Promise<void>}
  */
-export const replace = ctx => {
+export const read = async ctx => {
     const {id} = ctx.params;
-    const index = posts.findIndex(p => p.id.toString() === id);
-    if (index === -1) {
-        ctx.status = 404;
-        ctx.body = {
-            message: '포스트가 존재하지 않습니다.'
+    try {
+        const post = await Post.findById(id).exec();
+        if (!post) {
+            ctx.status = 404; // Not Found
+            return;
         }
-        return;
+        ctx.body = post;
+    } catch (e) {
+        ctx.throw(500, e)
     }
-    posts[index] = {
-        id,
-        ...ctx.request.body,
-    }
-    ctx.body = posts[index];
-}
+};
 
-/* 포스트 수정(특정 필드 변경)
-PATCH /api/posts/:id
-{title, body}
+/**
+ * DELETE /api/posts/:id
+ *
+ * @param ctx
+ * @returns {Promise<void>}
  */
-export const update = ctx => {
+export const remove = async ctx => {
     const {id} = ctx.params;
-    const index = posts.findIndex(p => p.id.toString() === id);
-    if (index === -1) {
-        ctx.status = 404
-        ctx.body = {
-            message: '포스트가 존재하지 않습니다.'
+    try {
+        /*
+        remove() : 특정 조건을 만족하는 데이터를 모두 지음
+        findByIdAndRemove() : id 를 찾아서 지움
+        findOneAndRemove() : 특정 조건을 만적하는 데이터 하나를 찾아서 지움
+         */
+        await Post.findByIdAndRemove(id).exec();
+        ctx.status = 204; // No Content (성공했지만 응답데이터 없음)
+    } catch (e) {
+        ctx.throw(500, e)
+    }
+};
+
+/**
+ * PATCH /api/posts/:id
+ *
+ * {
+ *     title : '수정',
+ *     body : '수정 내용',
+ *     tags : ['수정', '태그']
+ * }
+ *
+ * @param ctx
+ * @returns {Promise<void>}
+ */
+export const update = async ctx => {
+    const {id} = ctx.params;
+    try {
+        // new : true => 업데이트 된 데이터를 반환
+        // new : false => 업데이트 되기 전의 데이터를 반환
+        const post = await Post.findByIdAndUpdate(id, ctx.request.body, {new: true,}).exec();
+        if (!post) {
+            ctx.status = 404;
+            return;
         }
-        return
+        ctx.body = post;
+    } catch (e) {
+        ctx.throw(500, e);
     }
-    posts[index] = {
-        ...posts[index],
-        ...ctx.request.body,
-    }
-    ctx.body = posts[index]
-}
+};

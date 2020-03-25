@@ -33,7 +33,7 @@ export const write = async ctx => {
         tags: Joi.array()
             .items(Joi.string())
             .required(),
-    })
+    });
 
     // 검증하고 나서 검증 실패인 경우 에러 처리
     const result = Joi.validate(ctx.request.body, schema);
@@ -45,7 +45,7 @@ export const write = async ctx => {
 
     const {title, body, tags} = ctx.request.body;
     const post = new Post({
-        title, body, tags
+        title, body, tags, user: ctx.state.user
     });
     try {
         await post.save();

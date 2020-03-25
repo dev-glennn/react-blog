@@ -13,7 +13,7 @@ function App() {
             <Route component={LoginPage} path="/login"/>
             <Route component={RegisterPage} path="/register"/>
             <Route component={WritePage} path="/write"/>
-            <Route component={PostPage} path={['/@:username/:postId', '/']} exact/>
+            <Route component={PostPage} path="/@:username/:postId"/>
         </>
     );
 }

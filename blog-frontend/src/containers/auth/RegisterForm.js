@@ -31,7 +31,7 @@ const RegisterForm = ({history}) => {
         const {username, password, passwordConfirm} = form;
         if ([username, password, passwordConfirm].includes('')) {
             setError('빈 칸을 모두 입력하세요.');
-             return;
+            return;
         }
         if (password !== passwordConfirm) {
             setError('비밀번호가 일치하지 않습니다.');
@@ -72,6 +72,11 @@ const RegisterForm = ({history}) => {
     useEffect(() => {
         if (user) {
             history.push('/') // 홈 화면으로 이동
+            try {
+                localStorage.setItem('user', JSON.stringify(user));
+            } catch (e) {
+                console.log('localStorage is not working');
+            }
         }
     }, [history, user]);
 

@@ -19,7 +19,7 @@ const PostListContainer = ({location}) => {
     useEffect(() => {
         const {tag, username, page} = qs.parse(location.search, {
             ignoreQueryPrefix: true,
-        })
+        });
         dispatch(listPosts({tag, username, page}));
     }, [dispatch, location.search]);
 

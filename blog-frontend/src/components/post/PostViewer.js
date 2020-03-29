@@ -3,8 +3,9 @@ import styled from "styled-components";
 import palette from "../../lib/styles/palette";
 import SubInfo from "../common/SubInfo";
 import Tags from '../common/Tags'
+import Responsive from "../common/Responsive";
 
-const PostViewerBlock = styled.div`
+const PostViewerBlock = styled(Responsive)`
     margin-top: 4rem;
 `;
 
@@ -24,7 +25,7 @@ const PostContent = styled.div`
     color: ${palette.gray[8]};
 `;
 
-const PostViewer = ({post, error, loading}) => {
+const PostViewer = ({post, error, loading, actionButtons}) => {
     // 에러 발생 시
     if (error) {
         if (error.response && error.response.status === 404) {
@@ -43,9 +44,12 @@ const PostViewer = ({post, error, loading}) => {
         <PostViewerBlock>
             <PostHead>
                 <h1>{title}</h1>
-                <SubInfo username={user.username} publishedDate={new Date(publishedDate).toLocaleDateString()}/>
+                <SubInfo username={user.username}
+                         publishedDate={new Date(publishedDate).toLocaleDateString()}
+                         hasMarginTop/>
                 <Tags tags={tags}/>
             </PostHead>
+            {actionButtons}
             <PostContent
                 dangerouslySetInnerHTML={{__html: body}}
             />
